@@ -1,0 +1,15 @@
+# Pasta de memória/contexto local — não vai para o repositório
+.claude/
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
