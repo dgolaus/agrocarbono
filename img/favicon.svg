@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="AgroCarbono">
+  <!-- Corpo da folha: silhueta diagonal apontando para o topo direito -->
+  <path d="M28 4 C 28 4, 14 4, 9 9 C 4 14, 4 28, 4 28 C 4 28, 18 28, 23 23 C 28 18, 28 4, 28 4 Z"
+        fill="#d4ff5c"/>
+  <!-- Nervura central da folha -->
+  <path d="M6 26 L 26 6"
+        stroke="#0a1f15" stroke-width="2" stroke-linecap="round" fill="none"/>
+</svg>
