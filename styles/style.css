@@ -192,11 +192,10 @@ button { font: inherit; cursor: pointer; }
 }
 
 .logo-mark {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--primary);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 18%, transparent);
+  width: 22px;
+  height: 22px;
+  display: block;
+  flex-shrink: 0;
 }
 
 .logo-text { font-size: 17px; letter-spacing: .04em; }
@@ -292,6 +291,29 @@ button { font: inherit; cursor: pointer; }
   letter-spacing: -0.035em;
 }
 
+/* Efeito typewriter no hero — cursor piscante após a palavra que cicla. */
+.typewriter {
+  display: inline-block;
+  position: relative;
+  /* Puxa o " forte" um pouco mais perto da palavra que cicla. */
+  margin-right: -0.18em;
+}
+.typewriter::after {
+  content: '|';
+  display: inline-block;
+  margin-left: 0;
+  color: var(--primary);
+  font-weight: 400;
+  animation: typewriter-blink 0.9s step-end infinite;
+}
+@keyframes typewriter-blink {
+  0%, 50%   { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .typewriter::after { animation: none; opacity: 0; }
+}
+
 .hero-lead {
   font-size: clamp(1.05rem, .95rem + .5vw, 1.35rem);
   color: var(--ink-dim);
@@ -354,7 +376,7 @@ button { font: inherit; cursor: pointer; }
   position: relative;
   overflow: hidden;
   transition: transform var(--t-med), border-color var(--t-med),
-              background var(--t-med);
+              background var(--t-med), filter var(--t-med);
 }
 .step::after {
   content: "";
@@ -366,11 +388,28 @@ button { font: inherit; cursor: pointer; }
   pointer-events: none;
   mix-blend-mode: overlay;
 }
-.step:hover {
-  transform: translateY(-4px);
-  border-color: color-mix(in oklab, var(--primary) 40%, var(--line));
+/* Hover focado: o card sob o cursor cresce e ganha destaque,
+   enquanto os outros desfocam pra direcionar a atenção. */
+@media (hover: hover) {
+  .steps:hover .step {
+    filter: blur(2px) brightness(.7);
+    transform: scale(.97);
+  }
+  .steps:hover .step:hover {
+    filter: none;
+    transform: translateY(-6px) scale(1.04);
+    border-color: color-mix(in oklab, var(--primary) 40%, var(--line));
+    z-index: 2;
+  }
+  .steps:hover .step:hover::after { opacity: .08; }
 }
-.step:hover::after { opacity: .06; }
+@media (prefers-reduced-motion: reduce) {
+  .steps:hover .step,
+  .steps:hover .step:hover {
+    filter: none;
+    transform: none;
+  }
+}
 
 .step-num {
   display: inline-block;
@@ -488,7 +527,13 @@ button { font: inherit; cursor: pointer; }
   padding: clamp(24px, 4vw, 40px);
   display: grid;
   gap: 28px;
+  /* Compensa o header sticky na hora do scrollIntoView do JS,
+     pra não cortar o rating badge atrás do header. */
+  scroll-margin-top: 100px;
 }
+/* Esconde a caixa de resultado até que o JS remova o atributo [hidden].
+   Sem essa regra o display:grid acima sobrepõe o default do [hidden]. */
+.calc-result[hidden] { display: none; }
 
 .result-headline {
   display: grid;
@@ -560,6 +605,60 @@ button { font: inherit; cursor: pointer; }
   color: var(--ink-dim);
 }
 
+/* Mini bar chart visual no breakdown — preenche proporcional ao percentual */
+.breakdown-bar {
+  width: 100%;
+  height: 5px;
+  background: color-mix(in oklab, var(--line) 70%, transparent);
+  border-radius: 999px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+.breakdown-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+  width: 0;
+  transition: width 1.2s cubic-bezier(.2, .6, .2, 1);
+}
+
+/* Bloco de equivalências educativas — coloca a pegada em contexto real */
+.result-equivalences {
+  background: color-mix(in oklab, var(--primary) 6%, transparent);
+  border-left: 3px solid var(--primary);
+  padding: 18px 22px;
+  border-radius: var(--radius-sm);
+}
+.result-equivalences h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.95rem;
+  margin: 0 0 12px;
+  color: var(--ink-dim);
+  font-weight: 500;
+}
+.result-equivalences ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+}
+.result-equivalences li {
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.result-equivalences strong {
+  color: var(--primary);
+  font-weight: 600;
+}
+.result-equivalences .source {
+  display: block;
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+  opacity: 0.7;
+}
+
 .tips {
   display: grid;
   gap: 10px;
@@ -619,16 +718,18 @@ button { font: inherit; cursor: pointer; }
   margin-top: -260px;
   pointer-events: none;
   border-radius: 50%;
+  /* Mesma cor lima dos orbs decorativos do .ambient. Removido o
+     mix-blend-mode: screen que lavava a cor pra um branco-ish —
+     agora mantém a saturação lima visível, igual aos orbs do site. */
   background: radial-gradient(
     closest-side,
-    color-mix(in oklab, var(--primary) 35%, transparent) 0%,
-    color-mix(in oklab, var(--primary) 10%, transparent) 35%,
-    transparent 70%
+    color-mix(in oklab, var(--primary) 50%, transparent) 0%,
+    color-mix(in oklab, var(--primary) 15%, transparent) 40%,
+    transparent 75%
   );
-  filter: blur(50px);
+  filter: blur(60px);
   opacity: 0;
   z-index: 2;
-  mix-blend-mode: screen;
   transform: translate3d(-9999px, -9999px, 0);
   transition: opacity 480ms ease;
   will-change: transform, opacity;
@@ -663,6 +764,176 @@ button { font: inherit; cursor: pointer; }
   }
   [data-reveal] { opacity: 1; transform: none; }
   html { scroll-behavior: auto; }
+}
+
+/* ------- Controles de tamanho de fonte (A- / A+) ------- */
+.fs-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px;
+  background: var(--bg-elev);
+}
+.fs-controls button {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  font-family: inherit;
+  font-weight: 600;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--t-fast), color var(--t-fast), opacity var(--t-fast);
+}
+.fs-controls button:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--primary) 20%, transparent);
+  color: var(--primary);
+}
+.fs-controls button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.fs-controls .fs-decrease { font-size: 11px; }
+.fs-controls .fs-increase { font-size: 15px; }
+
+/* ------- Ícones SVG nos step cards ------- */
+.step-icon {
+  width: 38px;
+  height: 38px;
+  display: block;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+/* Cabeçalho do card: número à esquerda, ícone à direita. */
+.step-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.step-head .step-num { margin-bottom: 0; }
+
+/* ------- Metodologia ------- */
+.methodology { padding: clamp(80px, 9vw, 130px) 0; }
+.methodology-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin-top: 40px;
+}
+.method-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px 26px;
+  position: relative;
+  transition: border-color var(--t-med), transform var(--t-med), filter var(--t-med);
+}
+/* Hover focado: o card sob o cursor cresce e ganha destaque, enquanto
+   os outros desfocam (mesmo padrão dos cards de Processo). */
+@media (hover: hover) {
+  .methodology-grid:hover .method-card {
+    filter: blur(2px) brightness(.7);
+    transform: scale(.97);
+  }
+  .methodology-grid:hover .method-card:hover {
+    filter: none;
+    transform: translateY(-6px) scale(1.04);
+    border-color: color-mix(in oklab, var(--primary) 45%, var(--line));
+    z-index: 2;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .methodology-grid:hover .method-card,
+  .methodology-grid:hover .method-card:hover {
+    filter: none;
+    transform: none;
+  }
+}
+.method-card h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.2rem;
+  margin: 0 0 10px;
+  color: var(--primary);
+  letter-spacing: -0.01em;
+}
+.method-card p {
+  margin: 0 0 14px;
+  color: var(--ink-dim);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+.method-card p strong { color: var(--ink); font-weight: 600; }
+.method-card .source {
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+  opacity: 0.7;
+  display: block;
+  border-top: 1px dashed var(--line);
+  padding-top: 12px;
+}
+
+/* Nota pessoal do autor — bloco em destaque na seção Sobre,
+   cor lima sutil pra distinguir do parágrafo lead. */
+.author-note {
+  margin-top: 32px;
+  padding: 24px 28px;
+  background: color-mix(in oklab, var(--primary) 6%, transparent);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.7;
+  max-width: 70ch;
+}
+.author-note strong {
+  display: block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.05rem;
+  color: var(--primary);
+  margin-bottom: 10px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+/* ------- Botão copiar resumo no resultado ------- */
+.copy-btn {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 999px;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background var(--t-fast), border-color var(--t-fast),
+              color var(--t-fast);
+  align-self: start;
+}
+.copy-btn:hover {
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+  border-color: color-mix(in oklab, var(--primary) 45%, var(--line));
+}
+.copy-btn.copied {
+  background: color-mix(in oklab, var(--primary) 22%, transparent);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* ------- Responsividade dos novos elementos ------- */
+@media (max-width: 720px) {
+  .fs-controls { display: none; }
 }
 
 /* ------- Responsivo ------- */

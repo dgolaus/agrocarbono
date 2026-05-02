@@ -20,9 +20,18 @@ A proposta é mostrar que tecnologia útil ao campo pode ser **leve, acessível 
 - Calculadora de emissões em **CO₂e por safra e por hectare**
 - Classificação automática do impacto (baixo / médio / alto)
 - Dicas personalizadas geradas a partir do perfil da propriedade
+- **Equivalências educativas** no resultado (km dirigidos em carro popular, árvores nativas que absorveriam o CO₂)
+- **Barras visuais proporcionais** no breakdown das emissões
+- **Animação dos números** do resultado (0 → valor final, ease-out cubic)
+- Botão "**Copiar resumo**" (Clipboard API) com feedback visual
+- Botões **A- / A+** para ajustar tamanho da fonte (acessibilidade)
+- Efeito *typewriter* ciclando palavras no hero (Agro / Campo / Solo / Verde)
 - Animações de contagem nas estatísticas do hero
-- *Glow* seguindo o cursor no desktop (efeito sutil)
-- *Smooth scroll* customizado com interpolação linear
+- *Hover focado* nos cards (cresce o card sob o cursor, desfoca os demais)
+- *Glow* lima seguindo o cursor no desktop
+- *Smooth scroll* customizado com interpolação linear (lerp)
+- Ícones SVG autorais nos cards de Processo + favicon SVG autoral
+- Seção de Metodologia detalhando cada fator de emissão com fonte
 - Layout responsivo (mobile-first)
 - Suporte a `prefers-reduced-motion` e dispositivos sem hover
 
@@ -30,7 +39,7 @@ A proposta é mostrar que tecnologia útil ao campo pode ser **leve, acessível 
 
 - **HTML5** semântico — `header`, `main`, `section`, `fieldset`, `legend`, atributos ARIA
 - **CSS3** moderno — Custom Properties, Grid, Flexbox, `clamp()`, `color-mix()`, `mask-image`, `mix-blend-mode`, `backdrop-filter`
-- **JavaScript** vanilla (ES6+) — `IntersectionObserver`, `requestAnimationFrame`, IIFE, *lerp* para movimento suave
+- **JavaScript** vanilla (ES6+) — `IntersectionObserver`, `requestAnimationFrame`, `Clipboard API`, IIFE, *lerp* para movimento suave
 - **Google Fonts** — Space Grotesk (títulos) + Inter (corpo)
 
 > Conforme regulamento do Concurso Agrinho 2026 (Subcategoria 3), **nenhum framework** (React, Vue, Bootstrap, Tailwind, jQuery) ou biblioteca externa pesada foi utilizado. Todo CSS está em `styles/style.css` e todo JS em `scripts/main.js` — sem código *inline* no HTML.
@@ -41,9 +50,11 @@ A proposta é mostrar que tecnologia útil ao campo pode ser **leve, acessível 
 agro2026/
 ├── index.html          # marcação semântica
 ├── styles/
-│   └── style.css       # estilos, tokens e responsividade
+│   └── style.css       # estilos, tokens, animações e responsividade
 ├── scripts/
-│   └── main.js         # cálculo, dicas, animações
+│   └── main.js         # cálculo, dicas e interações
+├── img/
+│   └── favicon.svg     # ícone autoral (folha estilizada)
 └── README.md
 ```
 
@@ -89,7 +100,11 @@ Em conformidade com o regulamento do Concurso Agrinho 2026, declaro o uso de **I
 
 4. *"O site está OK com o regulamento do Concurso Agrinho 2026?"*
 
-A IA atuou como **consultora técnica e par programador**. Toda a definição de escopo, identidade visual, conteúdo textual, escolha dos fatores de emissão a citar e arquitetura final do projeto partiu de mim. O código foi revisado, testado e ajustado por mim antes de ser publicado.
+5. *"Vamos polir o site: hover focado nos cards de Processo (cresce o hovered, desfoca os outros), efeito typewriter ciclando 'Agro / Campo / Solo / Verde' no hero, esconder a caixa de resultado vazia, e ajustar o cursor glow pra ter a mesma cor dos orbs decorativos."*
+
+6. *"Tem sugestões pra fechar Nível 4 da rubrica? — Implementei (com a IA): botões A- / A+ pra tamanho de fonte (acessibilidade), ícones SVG autorais nos step cards, animação dos números do resultado, barras visuais proporcionais no breakdown, equivalências educativas (km de carro, árvores), botão 'Copiar resumo' e seção de Metodologia detalhada."*
+
+A IA atuou como **consultora técnica e par programador** ao longo do desenvolvimento. As decisões de escopo, identidade visual, escolha das fontes citadas, ordem das funcionalidades e arquitetura final partiram de mim. **A nota pessoal na seção "Sobre" do site foi escrita inteiramente por mim, sem assistência de IA.** Os demais textos foram rascunhados em colaboração e revisados/ajustados por mim antes de publicar. Todo o código foi revisado, testado e ajustado antes de ir ao ar.
 
 ## Autoria
 

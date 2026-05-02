@@ -123,42 +123,70 @@
   const fmt  = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
   const fmt1 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
 
-  // Função utilitária para calcular a porcentagem de uma parte sobre o total.
+  // Função utilitária para calcular a porcentagem (string) de uma parte sobre o total.
   function pct(parte, total) {
     if (!total) return '0%';
     return `${Math.round((parte / total) * 100)}%`;
+  }
+  // Função utilitária para retornar o percentual como número puro (usado nas barras).
+  function pctNum(parte, total) {
+    if (!total) return 0;
+    return Math.round((parte / total) * 100);
+  }
+  // Função para calcular equivalências educativas a partir do total em kg CO₂eq.
+  // Coloca a pegada em contexto real pra ajudar o usuário a visualizar o impacto.
+  function calcularEquivalencias(totalKgCO2) {
+    return {
+      // Carro popular emite ~150g CO₂/km (média moderna a gasolina).
+      kmCarro:    Math.round(totalKgCO2 / 0.15),
+      // Árvore nativa absorve ~22 kg CO₂/ano (estimativa SOS Mata Atlântica).
+      arvoresAno: Math.max(1, Math.round(totalKgCO2 / 22)),
+    };
   }
 
   function renderResultado(resultado, dados) {
     const result = document.getElementById('result');
     if (!result) return;
 
-    const cls = classificar(resultado.porHectare);
-    const dicas = gerarDicas(dados, resultado);
+    const cls    = classificar(resultado.porHectare);
+    const dicas  = gerarDicas(dados, resultado);
+    const equivs = calcularEquivalencias(resultado.total);
 
     result.innerHTML = `
       <div class="result-headline">
         <span class="result-rating ${cls.classe}">● ${cls.label}</span>
-        <span class="result-value">${fmt.format(resultado.total)}</span>
-        <span class="result-unit">kg CO₂eq por safra · ${fmt1.format(resultado.porHectare)} kg/ha</span>
+        <span class="result-value" data-num-target="${resultado.total}">0</span>
+        <span class="result-unit">kg CO₂eq por safra · <span data-num-target="${resultado.porHectare}" data-num-decimals="1">0</span> kg/ha</span>
       </div>
 
       <div class="result-breakdown">
         <div class="breakdown-item">
           <span class="lbl">Combustível</span>
-          <span class="val">${fmt.format(resultado.partes.diesel)} kg</span>
+          <span class="val"><span data-num-target="${resultado.partes.diesel}">0</span> kg</span>
           <span class="pct">${pct(resultado.partes.diesel, resultado.total)} do total</span>
+          <div class="breakdown-bar"><div class="breakdown-bar-fill" data-target-width="${pctNum(resultado.partes.diesel, resultado.total)}"></div></div>
         </div>
         <div class="breakdown-item">
           <span class="lbl">Fertilizantes</span>
-          <span class="val">${fmt.format(resultado.partes.fertilizante)} kg</span>
+          <span class="val"><span data-num-target="${resultado.partes.fertilizante}">0</span> kg</span>
           <span class="pct">${pct(resultado.partes.fertilizante, resultado.total)} do total</span>
+          <div class="breakdown-bar"><div class="breakdown-bar-fill" data-target-width="${pctNum(resultado.partes.fertilizante, resultado.total)}"></div></div>
         </div>
         <div class="breakdown-item">
           <span class="lbl">Transporte</span>
-          <span class="val">${fmt.format(resultado.partes.transporte)} kg</span>
+          <span class="val"><span data-num-target="${resultado.partes.transporte}">0</span> kg</span>
           <span class="pct">${pct(resultado.partes.transporte, resultado.total)} do total</span>
+          <div class="breakdown-bar"><div class="breakdown-bar-fill" data-target-width="${pctNum(resultado.partes.transporte, resultado.total)}"></div></div>
         </div>
+      </div>
+
+      <div class="result-equivalences">
+        <h4>Para você visualizar, sua pegada equivale a:</h4>
+        <ul>
+          <li><strong>${fmt.format(equivs.kmCarro)}</strong> km dirigidos em um carro popular</li>
+          <li>O CO₂ que <strong>${fmt.format(equivs.arvoresAno)}</strong> árvores nativas absorveriam em 1 ano</li>
+        </ul>
+        <span class="source">Estimativas — carro: ~150 g CO₂/km · árvore nativa: ~22 kg CO₂/ano</span>
       </div>
 
       <div class="tips">
@@ -167,10 +195,31 @@
           ${dicas.map(d => `<li>${d}</li>`).join('')}
         </ul>
       </div>
+
+      <button type="button" class="copy-btn" data-action="copy">Copiar resumo</button>
     `;
 
     result.hidden = false;
     result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Anima os números (0 → valor final) com ease-out cubic
+    animateResultNumbers(result);
+
+    // Anima as barras horizontais (CSS transition de 0% → target em 1.2s)
+    requestAnimationFrame(() => {
+      result.querySelectorAll('.breakdown-bar-fill').forEach(fill => {
+        const target = fill.dataset.targetWidth;
+        if (target) fill.style.width = target + '%';
+      });
+    });
+
+    // Liga o botão "Copiar resumo" usando os dados deste cálculo
+    const copyBtn = result.querySelector('[data-action="copy"]');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        copyResultToClipboard(copyBtn, resultado, dados, cls);
+      });
+    }
   }
 
   /* --------------------------------------------------------------
@@ -300,7 +349,7 @@
     let current = window.scrollY;
     let target  = window.scrollY;
     let animating = false;
-    const EASE = 0.09;
+    const EASE = 0.075;     // menor = mais "glide" (manteiga)
 
     function maxScroll() {
       return document.documentElement.scrollHeight - window.innerHeight;
@@ -317,7 +366,8 @@
 
     function tick() {
       current += (target - current) * EASE;
-      if (Math.abs(target - current) < 0.4) {
+      // Threshold mais apertado faz a parada final ficar imperceptível.
+      if (Math.abs(target - current) < 0.3) {
         current = target;
         animating = false;
       }
@@ -427,7 +477,163 @@
   }
 
   /* --------------------------------------------------------------
-     12) Função para inicializar o app (bootstrap): liga eventos
+     12) Função para criar o efeito typewriter no hero — cicla pelas
+         palavras de [data-words] digitando e apagando letra a letra.
+         Desabilitado em prefers-reduced-motion.
+     -------------------------------------------------------------- */
+  function setupTypewriter() {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const els = document.querySelectorAll('[data-words]');
+    if (!els.length) return;
+
+    const TYPE_MS          = 95;    // velocidade ao digitar (ms por char)
+    const ERASE_MS         = 55;    // velocidade ao apagar (ms por char)
+    const PAUSE_AFTER_TYPE = 1800;  // tempo com a palavra completa na tela
+    const PAUSE_AFTER_ERASE = 280;  // pausa breve com o campo vazio
+    const INITIAL_DELAY    = 2200;  // tempo até começar a 1a troca
+
+    els.forEach(el => {
+      const words = (el.dataset.words || '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+      if (words.length < 2) return;
+
+      // Detecta a palavra inicial já renderizada no HTML
+      const initial = el.textContent.trim();
+      let i = Math.max(0, words.indexOf(initial));
+
+      function eraseAndNext() {
+        const current = el.textContent;
+        let n = current.length;
+        (function step() {
+          if (n <= 0) {
+            setTimeout(() => {
+              i = (i + 1) % words.length;
+              typeNext();
+            }, PAUSE_AFTER_ERASE);
+            return;
+          }
+          n--;
+          el.textContent = current.slice(0, n);
+          setTimeout(step, ERASE_MS);
+        })();
+      }
+
+      function typeNext() {
+        const word = words[i];
+        let n = 0;
+        (function step() {
+          if (n >= word.length) {
+            setTimeout(eraseAndNext, PAUSE_AFTER_TYPE);
+            return;
+          }
+          n++;
+          el.textContent = word.slice(0, n);
+          setTimeout(step, TYPE_MS);
+        })();
+      }
+
+      setTimeout(eraseAndNext, INITIAL_DELAY);
+    });
+  }
+
+  /* --------------------------------------------------------------
+     13) Função para controlar tamanho de fonte (A- / A+) no header.
+         Acessibilidade: usuário pode aumentar/diminuir o texto.
+         Cicla por 4 tamanhos: 14, 16 (padrão), 18 e 20px.
+     -------------------------------------------------------------- */
+  function setupFontSize() {
+    const buttons = document.querySelectorAll('[data-fs]');
+    if (!buttons.length) return;
+
+    const SIZES = [14, 16, 18, 20];
+    let current = 1;  // índice padrão = 16px
+
+    function apply() {
+      document.documentElement.style.fontSize = SIZES[current] + 'px';
+      buttons.forEach(b => {
+        if (b.dataset.fs === 'dec') b.disabled = current <= 0;
+        if (b.dataset.fs === 'inc') b.disabled = current >= SIZES.length - 1;
+      });
+    }
+
+    buttons.forEach(b => {
+      b.addEventListener('click', () => {
+        if (b.dataset.fs === 'dec' && current > 0) current--;
+        else if (b.dataset.fs === 'inc' && current < SIZES.length - 1) current++;
+        apply();
+      });
+    });
+
+    apply();
+  }
+
+  /* --------------------------------------------------------------
+     14) Função para animar os números do resultado de 0 até o valor
+         alvo com easing ease-out cubic. Reusa a sensação dos
+         counters do hero, agora aplicada à pegada calculada.
+     -------------------------------------------------------------- */
+  function animateResultNumbers(container) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const numEls = container.querySelectorAll('[data-num-target]');
+    if (!numEls.length) return;
+
+    const duration = 1200;
+    const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+
+    numEls.forEach(el => {
+      const target = parseFloat(el.dataset.numTarget) || 0;
+      const decimals = parseInt(el.dataset.numDecimals || '0', 10);
+      const formatter = decimals > 0 ? fmt1 : fmt;
+      const start = performance.now();
+
+      function step(now) {
+        const t = Math.min((now - start) / duration, 1);
+        const value = target * easeOut(t);
+        el.textContent = formatter.format(value);
+        if (t < 1) requestAnimationFrame(step);
+        else el.textContent = formatter.format(target);
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
+  /* --------------------------------------------------------------
+     15) Função para copiar o resumo do resultado para a área de
+         transferência via Clipboard API, com feedback visual no
+         botão (texto muda para "Copiado" por 2s).
+     -------------------------------------------------------------- */
+  function copyResultToClipboard(button, resultado, dados, classification) {
+    const url = window.location.origin + window.location.pathname;
+    const texto =
+      `Minha pegada de carbono agrícola — AgroCarbono\n\n` +
+      `• Total da safra: ${fmt.format(resultado.total)} kg CO₂eq\n` +
+      `• Por hectare: ${fmt1.format(resultado.porHectare)} kg/ha\n` +
+      `• Classificação: ${classification.label}\n\n` +
+      `Detalhamento:\n` +
+      `- Combustível: ${fmt.format(resultado.partes.diesel)} kg\n` +
+      `- Fertilizantes: ${fmt.format(resultado.partes.fertilizante)} kg\n` +
+      `- Transporte: ${fmt.format(resultado.partes.transporte)} kg\n\n` +
+      `Calcule a sua: ${url}`;
+
+    if (!navigator.clipboard) return;
+
+    navigator.clipboard.writeText(texto).then(() => {
+      const original = button.textContent;
+      button.textContent = '✓ Resumo copiado';
+      button.classList.add('copied');
+      setTimeout(() => {
+        button.textContent = original;
+        button.classList.remove('copied');
+      }, 2200);
+    });
+  }
+
+  /* --------------------------------------------------------------
+     16) Função para inicializar o app (bootstrap): liga eventos
          do formulário e dispara as animações da página.
      -------------------------------------------------------------- */
   function init() {
@@ -440,6 +646,8 @@
     setupCursorGlow();
     setupSmoothScroll();
     setupCounters();
+    setupTypewriter();
+    setupFontSize();
   }
 
   if (document.readyState === 'loading') {

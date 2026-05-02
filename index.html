@@ -30,7 +30,7 @@
   <header class="site-header" data-reveal>
     <div class="container nav">
       <a href="#top" class="logo" aria-label="AgroCarbono — página inicial">
-        <span class="logo-mark" aria-hidden="true"></span>
+        <img class="logo-mark" src="img/favicon.svg" alt="" aria-hidden="true">
         <span class="logo-text">AGRO<span class="accent">CARBONO</span></span>
       </a>
 
@@ -39,6 +39,13 @@
         <a href="#calculadora">Calcular</a>
         <a href="#sobre">Sobre</a>
       </nav>
+
+      <div class="fs-controls" role="group" aria-label="Tamanho do texto">
+        <button type="button" class="fs-decrease" data-fs="dec"
+                aria-label="Diminuir tamanho do texto" title="Diminuir texto">A-</button>
+        <button type="button" class="fs-increase" data-fs="inc"
+                aria-label="Aumentar tamanho do texto" title="Aumentar texto">A+</button>
+      </div>
 
       <a href="#calculadora" class="btn btn-primary btn-sm">Começar agora</a>
     </div>
@@ -51,7 +58,7 @@
         <span class="eyebrow" data-reveal>● AGRINHO 2026 · SUBCATEGORIA 3</span>
 
         <h1 class="hero-title" data-reveal>
-          Agro forte.<br>
+          <span class="typewriter" data-words="Agro,Campo,Solo,Verde" aria-label="Agro">Agro</span> forte.<br>
           <span class="text-gradient">Futuro sustentável.</span>
         </h1>
 
@@ -96,19 +103,47 @@
 
         <div class="steps">
           <article class="step" data-reveal>
-            <span class="step-num">01</span>
+            <div class="step-head">
+              <span class="step-num">01</span>
+              <svg class="step-icon" viewBox="0 0 32 32" aria-hidden="true">
+                <rect x="7" y="6" width="18" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+                <rect x="11" y="3" width="10" height="5" rx="1" fill="currentColor"/>
+                <line x1="11" y1="14" x2="21" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="11" y1="19" x2="21" y2="19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="11" y1="24" x2="17" y2="24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
             <h3>Informe seus dados</h3>
             <p>Conte sobre máquinas, combustíveis, fertilizantes, transporte e produção da sua propriedade.</p>
           </article>
 
           <article class="step" data-reveal>
-            <span class="step-num">02</span>
+            <div class="step-head">
+              <span class="step-num">02</span>
+              <svg class="step-icon" viewBox="0 0 32 32" aria-hidden="true">
+                <rect x="6" y="18" width="4" height="9" fill="currentColor" rx="1"/>
+                <rect x="14" y="12" width="4" height="15" fill="currentColor" rx="1"/>
+                <rect x="22" y="6" width="4" height="21" fill="currentColor" rx="1"/>
+                <line x1="4" y1="28" x2="28" y2="28" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
             <h3>Calcule a pegada</h3>
             <p>Estimamos as emissões em CO₂ equivalente usando fatores médios da agricultura brasileira.</p>
           </article>
 
           <article class="step" data-reveal>
-            <span class="step-num">03</span>
+            <div class="step-head">
+              <span class="step-num">03</span>
+              <svg class="step-icon" viewBox="0 0 32 32" aria-hidden="true">
+                <path d="M16 4 C 10 4, 7 9, 9 14 C 10 16, 12 18, 12 21 L 20 21 C 20 18, 22 16, 23 14 C 25 9, 22 4, 16 4 Z"
+                      fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                <line x1="14" y1="11" x2="18" y2="11" stroke="currentColor" stroke-width="1"/>
+                <line x1="14" y1="14" x2="18" y2="14" stroke="currentColor" stroke-width="1"/>
+                <rect x="13" y="22" width="6" height="2" fill="currentColor" rx="0.5"/>
+                <rect x="14" y="25" width="4" height="2" fill="currentColor" rx="0.5"/>
+                <line x1="15" y1="28" x2="17" y2="28" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
             <h3>Receba dicas</h3>
             <p>Veja recomendações personalizadas para reduzir o impacto ambiental sem perder produtividade.</p>
           </article>
@@ -212,6 +247,53 @@
       </div>
     </section>
 
+    <!-- ============== METODOLOGIA ============== -->
+    <section id="metodologia" class="methodology">
+      <div class="container">
+        <span class="eyebrow" data-reveal>METODOLOGIA</span>
+        <h2 class="section-title" data-reveal>
+          Como <span class="text-gradient">calculamos.</span>
+        </h2>
+        <p class="section-lead" data-reveal>
+          Cada cálculo combina seus dados com fatores médios de emissão consolidados
+          em fontes públicas brasileiras e internacionais.
+        </p>
+
+        <div class="methodology-grid">
+          <article class="method-card" data-reveal>
+            <h3>Combustível (diesel)</h3>
+            <p>
+              Multiplicamos os litros de diesel queimados por
+              <strong>2,68 kg CO₂eq/L</strong> — fator padrão para combustão
+              de óleo diesel em motores agrícolas.
+            </p>
+            <span class="source">Fonte: IPCC 2006, Vol. 2 — Energy</span>
+          </article>
+
+          <article class="method-card" data-reveal>
+            <h3>Fertilizantes</h3>
+            <p>
+              Cada kg de adubo é multiplicado por um fator que depende do tipo:
+              <strong>3,8</strong> para químico (NPK/ureia),
+              <strong>2,0</strong> para misto e
+              <strong>0,35</strong> para orgânico.
+            </p>
+            <span class="source">Fonte: Embrapa — pegada de carbono em sistemas agrícolas</span>
+          </article>
+
+          <article class="method-card" data-reveal>
+            <h3>Transporte</h3>
+            <p>
+              Distância × 2 (ida + volta) × viagens por mês × 12 meses ×
+              <strong>0,9 kg CO₂eq/km</strong> — média para caminhão médio
+              com carga.
+            </p>
+            <span class="source">Fonte: MCTI — Inventário Nacional de Emissões</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <!-- ============== SOBRE ============== -->
     <section id="sobre" class="about">
       <div class="container">
@@ -225,6 +307,16 @@
           subcategoria de Programação Front-End. Foi construído com HTML, CSS
           e JavaScript puros — sem frameworks — para mostrar que ferramentas
           úteis ao campo podem ser leves, acessíveis e abertas.
+        </p>
+
+        <p class="author-note" data-reveal>
+          <strong>Por que fiz esse projeto.</strong>
+          Fiz esse projeto pra ajudar produtores locais. Escolhi a pegada de carbono
+          porque é algo útil de verdade, principalmente pra quem trabalha com
+          produção de alimentos. Tenho um amigo que mexe com hortas e isso pode
+          ajudar ele a entender e reduzir o impacto do que produz no dia a dia.
+          Uma das partes mais difíceis foi juntar tudo e fazer o site funcionar
+          sem quebrar no processo.
         </p>
       </div>
     </section>
