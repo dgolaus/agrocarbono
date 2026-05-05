@@ -196,7 +196,10 @@
         </ul>
       </div>
 
-      <button type="button" class="copy-btn" data-action="copy">Copiar resumo</button>
+      <div class="result-actions">
+        <button type="button" class="copy-btn" data-action="copy">Copiar resumo</button>
+        <button type="button" class="copy-btn" data-action="print" title="Abrir diálogo de impressão (também salva como PDF)">Imprimir / PDF</button>
+      </div>
     `;
 
     result.hidden = false;
@@ -220,6 +223,12 @@
         copyResultToClipboard(copyBtn, resultado, dados, cls);
       });
     }
+
+    // Liga o botão "Imprimir / PDF" — abre o diálogo nativo do navegador
+    const printBtn = result.querySelector('[data-action="print"]');
+    if (printBtn) {
+      printBtn.addEventListener('click', () => window.print());
+    }
   }
 
   /* --------------------------------------------------------------
@@ -230,15 +239,12 @@
     event.preventDefault();
     const form = event.currentTarget;
 
+    // Validação visual em tempo real (definida em setupFormValidation).
+    // Bloqueia o envio e foca o primeiro campo inválido.
+    if (form._validateAll && !form._validateAll()) return;
+
     // Coleta dados como objeto simples
     const dados = Object.fromEntries(new FormData(form).entries());
-
-    // Validação mínima: área é obrigatória para fazer sentido por-hectare
-    if (!dados.area || Number(dados.area) <= 0) {
-      const areaInput = form.querySelector('#area');
-      areaInput?.focus();
-      return;
-    }
 
     const resultado = calcular(dados);
     renderResultado(resultado, dados);
@@ -623,8 +629,9 @@
 
     navigator.clipboard.writeText(texto).then(() => {
       const original = button.textContent;
-      button.textContent = '✓ Resumo copiado';
+      button.textContent = '✓ Copiado';
       button.classList.add('copied');
+      showToast('✓ Resumo copiado para a área de transferência');
       setTimeout(() => {
         button.textContent = original;
         button.classList.remove('copied');
@@ -633,7 +640,106 @@
   }
 
   /* --------------------------------------------------------------
-     16) Função para inicializar o app (bootstrap): liga eventos
+     16) Função para validação visual em tempo real do formulário.
+         Mostra erros nos campos obrigatórios (área e cultura) com
+         feedback inline. Bloqueia o submit se houver inválido.
+     -------------------------------------------------------------- */
+  function setupFormValidation() {
+    const form = document.getElementById('carbon-form');
+    if (!form) return;
+
+    // Lista dos campos obrigatórios e suas regras de validação
+    const fields = [
+      {
+        id: 'area',
+        validate: v => Number(v) > 0,
+        message: 'Informe uma área maior que zero (em hectares).'
+      },
+      {
+        id: 'cultura',
+        validate: v => v && v.trim() !== '',
+        message: 'Selecione a cultura principal.'
+      }
+    ];
+
+    function setFieldError(input, message) {
+      const wrapper = input.closest('.field');
+      const errorEl = wrapper?.querySelector('.field-error');
+      if (!wrapper || !errorEl) return;
+      if (message) {
+        wrapper.classList.add('has-error');
+        errorEl.textContent = message;
+      } else {
+        wrapper.classList.remove('has-error');
+        errorEl.textContent = '';
+      }
+    }
+
+    function validateField(field) {
+      const input = form.querySelector('#' + field.id);
+      if (!input) return true;
+      const isValid = field.validate(input.value);
+      setFieldError(input, isValid ? null : field.message);
+      return isValid;
+    }
+
+    // Liga eventos: blur valida; input/change limpa o erro se já corrigiu
+    fields.forEach(field => {
+      const input = form.querySelector('#' + field.id);
+      if (!input) return;
+      input.addEventListener('blur', () => validateField(field));
+      input.addEventListener('input', () => {
+        if (input.closest('.field').classList.contains('has-error')) {
+          validateField(field);
+        }
+      });
+      if (input.tagName === 'SELECT') {
+        input.addEventListener('change', () => validateField(field));
+      }
+    });
+
+    // Limpa todos os erros quando o form é resetado
+    form.addEventListener('reset', () => {
+      fields.forEach(field => {
+        const input = form.querySelector('#' + field.id);
+        if (input) setFieldError(input, null);
+      });
+    });
+
+    // Expõe método pra handleSubmit chamar antes de calcular
+    form._validateAll = function() {
+      let firstInvalid = null;
+      let allValid = true;
+      fields.forEach(field => {
+        const valid = validateField(field);
+        if (!valid) {
+          allValid = false;
+          if (!firstInvalid) firstInvalid = form.querySelector('#' + field.id);
+        }
+      });
+      if (firstInvalid) firstInvalid.focus();
+      return allValid;
+    };
+  }
+
+  /* --------------------------------------------------------------
+     17) Função para exibir um toast notification temporário —
+         mensagem rápida no canto inferior direito (ex.: confirmação
+         de "Resumo copiado para a área de transferência").
+     -------------------------------------------------------------- */
+  function showToast(message, duration = 2500) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add('is-visible');
+    if (toast._timer) clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => {
+      toast.classList.remove('is-visible');
+    }, duration);
+  }
+
+  /* --------------------------------------------------------------
+     18) Função para inicializar o app (bootstrap): liga eventos
          do formulário e dispara as animações da página.
      -------------------------------------------------------------- */
   function init() {
@@ -648,6 +754,7 @@
     setupCounters();
     setupTypewriter();
     setupFontSize();
+    setupFormValidation();
   }
 
   if (document.readyState === 'loading') {
